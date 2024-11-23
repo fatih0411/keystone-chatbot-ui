@@ -29,107 +29,87 @@ import { styled, alpha } from '@mui/material/styles';
 import axios from 'axios';
 import { config } from '../config';
 
-// Styled components with enhanced design
-const MessageContainer = styled(Box)(({ theme, type }) => ({
-    display: 'flex',
-    justifyContent: type === 'user' ? 'flex-end' : 'flex-start',
-    marginBottom: '1rem',
-    opacity: 0,
-    animation: 'fadeIn 0.3s ease-in forwards',
-    '@keyframes fadeIn': {
-        '0%': {
-            opacity: 0,
-            transform: type === 'user' ? 'translateX(20px)' : 'translateX(-20px)',
-        },
-        '100%': {
-            opacity: 1,
-            transform: 'translateX(0)',
-        },
-    },
-}));
-
+// Styled components for enhanced design
 const MessageBubble = styled(Paper)(({ theme, type }) => ({
-    padding: '1rem 1.2rem',
-    maxWidth: '70%',
-    borderRadius: type === 'user' ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
-    background: type === 'user' 
-        ? 'linear-gradient(135deg, #4B6CB7 0%, #182848 100%)'  // Deep blue gradient
-        : 'linear-gradient(135deg, #E6E9EF 0%, #F5F7FA 100%)', // Soft gray gradient
+    padding: '12px 16px',
+    borderRadius: type === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+    backgroundColor: type === 'user' ? theme.palette.primary.main : '#f5f5f5',
     color: type === 'user' ? '#fff' : theme.palette.text.primary,
-    boxShadow: type === 'user'
-        ? '0 4px 15px rgba(75, 108, 183, 0.25), 0 2px 5px rgba(75, 108, 183, 0.15)'
-        : '0 4px 15px rgba(0, 0, 0, 0.05), 0 2px 5px rgba(0, 0, 0, 0.03)',
-    wordBreak: 'break-word',
-    position: 'relative',
-    transition: 'all 0.2s ease-in-out',
-    '&:hover': {
-        transform: 'translateY(-1px)',
-        boxShadow: type === 'user'
-            ? '0 6px 20px rgba(75, 108, 183, 0.3), 0 3px 8px rgba(75, 108, 183, 0.2)'
-            : '0 6px 20px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.05)',
-    },
+    maxWidth: '80%',
+    wordWrap: 'break-word',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
 }));
 
-const ChatWindow = styled(Box)(({ theme, isMobile }) => ({
-    position: 'fixed',
-    bottom: isMobile ? 0 : '80px',
-    right: isMobile ? 0 : '20px',
-    height: isMobile ? '100vh' : config.chatWindow.height,
-    width: isMobile ? '100vw' : config.chatWindow.width,
+const ChatHeader = styled(Box)(({ theme }) => ({
+    background: 'linear-gradient(135deg, #6B8DE6 0%, #5E76CC 100%)',
+    color: '#fff',
+    padding: '16px',
+    borderTopLeftRadius: theme.shape.borderRadius,
+    borderTopRightRadius: theme.shape.borderRadius,
     display: 'flex',
-    flexDirection: 'column',
-    background: 'linear-gradient(to bottom, #F8F9FB, #F0F2F5)',  // Subtle gradient background
-    borderRadius: isMobile ? 0 : '16px',
-    overflow: 'hidden',
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12), 0 3px 15px rgba(0, 0, 0, 0.08)',
-    transition: 'all 0.3s ease-in-out',
-    zIndex: 1000,
-}));
-
-const ChatButton = styled(Fab)(({ theme, isMobile }) => ({
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    zIndex: 1000,
-    background: 'linear-gradient(135deg, #4B6CB7 0%, #182848 100%)',  // Matching gradient
-    boxShadow: '0 4px 15px rgba(75, 108, 183, 0.25), 0 2px 5px rgba(75, 108, 183, 0.15)',
-    '&:hover': {
-        background: 'linear-gradient(135deg, #405FA0 0%, #142238 100%)',
-        boxShadow: '0 6px 20px rgba(75, 108, 183, 0.3), 0 3px 8px rgba(75, 108, 183, 0.2)',
-    },
-    '@media (max-width: 600px)': {
-        bottom: '10px',
-        right: '10px',
-    },
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
     '& .MuiOutlinedInput-root': {
-        borderRadius: '20px',
         backgroundColor: '#fff',
-        '&.Mui-focused': {
-            '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.primary.main,
-                borderWidth: '2px',
-            },
+        borderRadius: '24px',
+        '& fieldset': {
+            borderColor: 'rgba(0, 0, 0, 0.1)',
+        },
+        '&:hover fieldset': {
+            borderColor: theme.palette.primary.main,
+        },
+        '&.Mui-focused fieldset': {
+            borderColor: theme.palette.primary.main,
         },
     },
 }));
 
 const SendButton = styled(IconButton)(({ theme }) => ({
-    background: 'linear-gradient(135deg, #4B6CB7 0%, #182848 100%)',  // Matching gradient
+    backgroundColor: theme.palette.primary.main,
     color: '#fff',
     borderRadius: '50%',
-    padding: '8px',
-    boxShadow: '0 2px 8px rgba(75, 108, 183, 0.2)',
+    padding: 12,
     '&:hover': {
-        background: 'linear-gradient(135deg, #405FA0 0%, #142238 100%)',
-        boxShadow: '0 4px 12px rgba(75, 108, 183, 0.25)',
+        backgroundColor: theme.palette.primary.dark,
     },
     '&.Mui-disabled': {
-        background: '#E9ECEF',
-        color: '#ADB5BD',
+        backgroundColor: theme.palette.action.disabledBackground,
+        color: theme.palette.action.disabled,
     },
+}));
+
+const TimeStamp = styled('div')({
+    fontSize: '0.75rem',
+    color: 'rgba(0, 0, 0, 0.5)',
+    marginTop: '4px',
+    marginLeft: '4px',
+});
+
+const MessageContainer = styled(Box)({
+    display: 'flex',
+    alignItems: 'flex-start',
+    marginBottom: '16px',
+    animation: 'fadeIn 0.3s ease-in-out',
+    '@keyframes fadeIn': {
+        from: { opacity: 0, transform: 'translateY(10px)' },
+        to: { opacity: 1, transform: 'translateY(0)' },
+    },
+});
+
+const ChatButton = styled(Fab)(({ theme }) => ({
+    position: 'fixed',
+    bottom: 20,
+    right: 20,
+    background: 'linear-gradient(135deg, #6B8DE6 0%, #5E76CC 100%)',
+    color: '#fff',
+    '&:hover': {
+        background: 'linear-gradient(135deg, #5E76CC 0%, #4A63B8 100%)',
+    },
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
 }));
 
 const TypingIndicator = styled(Box)(({ theme }) => ({
@@ -158,13 +138,6 @@ const TypingIndicator = styled(Box)(({ theme }) => ({
             transform: 'scale(1)',
         },
     },
-}));
-
-const TimeStamp = styled(Typography)(({ theme }) => ({
-    fontSize: '0.75rem',
-    color: alpha(theme.palette.text.primary, 0.6),
-    marginTop: '4px',
-    textAlign: 'center',
 }));
 
 const Chat = () => {
@@ -308,15 +281,14 @@ const Chat = () => {
 
     return (
         <>
-            {(!isOpen || !isMobile) && (
-                <Tooltip title="Open chat" arrow>
-                    <ChatButton 
-                        color="primary" 
+            {!isOpen && (
+                <Tooltip title="Open Chat" arrow>
+                    <ChatButton
+                        color="primary"
                         onClick={toggleChat}
-                        aria-label="chat"
-                        isMobile={isMobile}
+                        sx={{ zIndex: 1000 }}
                     >
-                        {isOpen ? <CloseIcon /> : <ChatIcon />}
+                        <ChatIcon />
                     </ChatButton>
                 </Tooltip>
             )}
@@ -330,158 +302,58 @@ const Chat = () => {
                     maxWidth: window.self === window.top ? 400 : '100%',
                     height: window.self === window.top ? 600 : '100%',
                     bgcolor: 'background.paper',
-                    borderRadius: window.self === window.top ? 2 : 0,
-                    boxShadow: window.self === window.top ? 3 : 0,
+                    borderRadius: window.self === window.top ? '12px' : 0,
+                    boxShadow: window.self === window.top ? '0 8px 32px rgba(0,0,0,0.1)' : 0,
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
+                    animation: 'slideIn 0.3s ease-out',
+                    '@keyframes slideIn': {
+                        from: { transform: 'translateY(20px)', opacity: 0 },
+                        to: { transform: 'translateY(0)', opacity: 1 },
+                    },
                 }}>
-                    <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        p: 2,
-                        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-                        background: 'linear-gradient(to right, #F8F9FB, #F0F2F5)',
-                    }}>
-                        <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between',
-                            mb: 1
-                        }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Avatar sx={{ 
-                                    bgcolor: 'primary.main',
-                                    width: 40,
-                                    height: 40,
-                                    boxShadow: '0 2px 8px rgba(75, 108, 183, 0.25)'
-                                }}>
-                                    <BotIcon />
-                                </Avatar>
-                                <Box>
-                                    <Typography variant="h6" sx={{ 
-                                        fontSize: '1.1rem',
-                                        fontWeight: 600,
-                                        color: '#2D3748'
-                                    }}>
-                                        Keystone AI
-                                    </Typography>
-                                    <Typography 
-                                        variant="caption" 
-                                        sx={{ 
-                                            color: 'success.main',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 0.5
-                                        }}
-                                    >
-                                        <Box 
-                                            component="span" 
-                                            sx={{ 
-                                                width: 6,
-                                                height: 6,
-                                                bgcolor: 'success.main',
-                                                borderRadius: '50%',
-                                                display: 'inline-block'
-                                            }} 
-                                        />
-                                        オンライン
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Tooltip title="ハイコントラストモード" arrow>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                size="small"
-                                                checked={highContrast}
-                                                onChange={(e) => setHighContrast(e.target.checked)}
-                                            />
-                                        }
-                                        label={<AccessibilityIcon fontSize="small" />}
-                                    />
-                                </Tooltip>
-                                {messages.length > 0 && (
-                                    <Tooltip title="チャットをクリア" arrow>
-                                        <IconButton 
-                                            onClick={clearChat} 
-                                            size="small"
-                                        >
-                                            <DeleteOutlineIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                {isMobile && (
-                                    <Tooltip title="閉じる" arrow>
-                                        <IconButton 
-                                            onClick={toggleChat} 
-                                            size="small"
-                                        >
-                                            <CloseIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </Box>
+                    <ChatHeader>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Avatar sx={{ bgcolor: 'primary.dark', width: 32, height: 32 }}>
+                                <BotIcon fontSize="small" />
+                            </Avatar>
+                            <Typography variant="h6" component="div">
+                                Keystone Assistant
+                            </Typography>
                         </Box>
-                    </Box>
+                        <IconButton 
+                            onClick={toggleChat}
+                            sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { color: '#fff' } }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </ChatHeader>
 
                     <Box sx={{
                         flex: 1,
                         overflowY: 'auto',
                         p: 2,
-                        backgroundColor: highContrast ? '#FFFFFF' : '#F8F9FB',  // Warmer background
-                        backgroundImage: highContrast ? 'none' : 'linear-gradient(120deg, #fdfbfb 0%, #f5f7fa 100%)',  // Subtle pattern
-                        '&::-webkit-scrollbar': {
-                            width: '8px',
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            background: 'rgba(0, 0, 0, 0.03)',
-                            borderRadius: '4px',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            background: 'rgba(0, 0, 0, 0.15)',
-                            borderRadius: '4px',
-                            '&:hover': {
-                                background: 'rgba(0, 0, 0, 0.25)',
-                            },
-                        },
+                        backgroundColor: '#fafafa',
+                        backgroundImage: 'radial-gradient(circle at 50% 50%, #f5f5f5 0%, transparent 100%)',
                     }}>
-                        {messages.length === 0 && (
-                            <Box sx={{ 
-                                display: 'flex', 
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                height: '100%',
-                                color: 'text.secondary',
-                                gap: 2,
-                            }}>
-                                <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
-                                    <BotIcon sx={{ fontSize: 32 }} />
-                                </Avatar>
-                                <Typography variant="h6">
-                                    Welcome! 👋
-                                </Typography>
-                                <Typography variant="body2" textAlign="center" color="text.secondary">
-                                    I'm here to help. Ask me anything!
-                                </Typography>
-                            </Box>
-                        )}
                         {messages.map((message, index) => (
-                            <MessageContainer key={index} type={message.type}>
+                            <MessageContainer key={index} sx={{
+                                justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+                            }}>
                                 {message.type === 'bot' && (
                                     <Avatar sx={{ 
                                         width: 32, 
                                         height: 32, 
                                         mr: 1,
                                         bgcolor: 'primary.main',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                     }}>
                                         <BotIcon fontSize="small" />
                                     </Avatar>
                                 )}
                                 <Box>
-                                    <MessageBubble type={message.type} elevation={1}>
+                                    <MessageBubble type={message.type} elevation={0}>
                                         <Typography>{message.text}</Typography>
                                     </MessageBubble>
                                     <TimeStamp>
@@ -493,7 +365,9 @@ const Chat = () => {
                                             alignItems: 'center', 
                                             gap: 1,
                                             mt: 1,
-                                            justifyContent: 'flex-start'
+                                            opacity: 0.7,
+                                            transition: 'opacity 0.2s',
+                                            '&:hover': { opacity: 1 }
                                         }}>
                                             <Tooltip title="Helpful" arrow>
                                                 <IconButton 
@@ -521,7 +395,8 @@ const Chat = () => {
                                         width: 32, 
                                         height: 32, 
                                         ml: 1,
-                                        bgcolor: 'primary.main',
+                                        bgcolor: 'secondary.main',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                     }}>
                                         U
                                     </Avatar>
@@ -529,11 +404,9 @@ const Chat = () => {
                             </MessageContainer>
                         ))}
                         {isLoading && (
-                            <TypingIndicator>
-                                <div className="dot" />
-                                <div className="dot" />
-                                <div className="dot" />
-                            </TypingIndicator>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                                <CircularProgress size={24} />
+                            </Box>
                         )}
                         <div ref={messagesEndRef} />
                     </Box>
@@ -541,7 +414,7 @@ const Chat = () => {
                     <Box sx={{
                         p: 2,
                         borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-                        background: 'linear-gradient(to right, #F8F9FB, #F0F2F5)',  // Subtle gradient footer
+                        background: 'linear-gradient(to right, #F8F9FB, #F0F2F5)',
                     }}>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                             <StyledTextField
@@ -554,6 +427,7 @@ const Chat = () => {
                                 size="small"
                                 multiline
                                 maxRows={4}
+                                sx={{ flex: 1 }}
                             />
                             <SendButton
                                 onClick={handleSend}
