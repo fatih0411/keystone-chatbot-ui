@@ -23,7 +23,9 @@ import {
     ThumbUp as ThumbUpIcon,
     ThumbDown as ThumbDownIcon,
     AccessibilityNew as AccessibilityIcon,
-    SmartToy as BotIcon
+    SmartToy as BotIcon,
+    DarkMode as DarkModeIcon,
+    LightMode as LightModeIcon,
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
 import axios from 'axios';
@@ -158,6 +160,11 @@ const Chat = () => {
     });
     const [highContrast, setHighContrast] = useState(false);
     const [messageRatings, setMessageRatings] = useState({});
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedMode = localStorage.getItem('chatDarkMode');
+        return savedMode ? JSON.parse(savedMode) : false;
+    });
+    
     const messagesEndRef = useRef(null);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -175,6 +182,10 @@ const Chat = () => {
     useEffect(() => {
         localStorage.setItem('chatIsOpen', JSON.stringify(isOpen));
     }, [isOpen]);
+
+    useEffect(() => {
+        localStorage.setItem('chatDarkMode', JSON.stringify(isDarkMode));
+    }, [isDarkMode]);
 
     useEffect(() => {
         scrollToBottom();
@@ -279,6 +290,38 @@ const Chat = () => {
         }));
     };
 
+    // Add dark mode styles
+    const darkModeStyles = {
+        chatWindow: {
+            backgroundColor: isDarkMode ? '#1a1a1a' : '#fafafa',
+            color: isDarkMode ? '#fff' : 'inherit',
+        },
+        header: {
+            background: isDarkMode 
+                ? 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)'
+                : 'linear-gradient(135deg, #6B8DE6 0%, #5E76CC 100%)',
+        },
+        messageBubble: {
+            user: {
+                backgroundColor: isDarkMode ? '#0d47a1' : theme.palette.primary.main,
+                color: '#fff',
+            },
+            bot: {
+                backgroundColor: isDarkMode ? '#424242' : '#f5f5f5',
+                color: isDarkMode ? '#fff' : theme.palette.text.primary,
+            },
+        },
+        inputArea: {
+            background: isDarkMode 
+                ? 'linear-gradient(to right, #2c3e50, #3498db)'
+                : 'linear-gradient(to right, #F8F9FB, #F0F2F5)',
+        },
+        textField: {
+            backgroundColor: isDarkMode ? '#424242' : '#fff',
+            color: isDarkMode ? '#fff' : 'inherit',
+        },
+    };
+
     return (
         <>
             {!isOpen && (
@@ -286,7 +329,12 @@ const Chat = () => {
                     <ChatButton
                         color="primary"
                         onClick={toggleChat}
-                        sx={{ zIndex: 1000 }}
+                        sx={{ 
+                            zIndex: 1000,
+                            background: isDarkMode 
+                                ? 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)'
+                                : 'linear-gradient(135deg, #6B8DE6 0%, #5E76CC 100%)',
+                        }}
                     >
                         <ChatIcon />
                     </ChatButton>
@@ -301,7 +349,7 @@ const Chat = () => {
                     width: '100%',
                     maxWidth: window.self === window.top ? 400 : '100%',
                     height: window.self === window.top ? 600 : '100%',
-                    bgcolor: 'background.paper',
+                    bgcolor: isDarkMode ? '#1a1a1a' : 'background.paper',
                     borderRadius: window.self === window.top ? '12px' : 0,
                     boxShadow: window.self === window.top ? '0 8px 32px rgba(0,0,0,0.1)' : 0,
                     display: 'flex',
@@ -313,29 +361,45 @@ const Chat = () => {
                         to: { transform: 'translateY(0)', opacity: 1 },
                     },
                 }}>
-                    <ChatHeader>
+                    <Box sx={{
+                        ...darkModeStyles.header,
+                        padding: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar sx={{ bgcolor: 'primary.dark', width: 32, height: 32 }}>
+                            <Avatar sx={{ bgcolor: isDarkMode ? '#0d47a1' : 'primary.dark', width: 32, height: 32 }}>
                                 <BotIcon fontSize="small" />
                             </Avatar>
-                            <Typography variant="h6" component="div">
+                            <Typography variant="h6" component="div" sx={{ color: '#fff' }}>
                                 Keystone Assistant
                             </Typography>
                         </Box>
-                        <IconButton 
-                            onClick={toggleChat}
-                            sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { color: '#fff' } }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-                    </ChatHeader>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <IconButton 
+                                onClick={() => setIsDarkMode(!isDarkMode)}
+                                sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { color: '#fff' } }}
+                            >
+                                {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                            </IconButton>
+                            <IconButton 
+                                onClick={toggleChat}
+                                sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { color: '#fff' } }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+                    </Box>
 
                     <Box sx={{
                         flex: 1,
                         overflowY: 'auto',
                         p: 2,
-                        backgroundColor: '#fafafa',
-                        backgroundImage: 'radial-gradient(circle at 50% 50%, #f5f5f5 0%, transparent 100%)',
+                        ...darkModeStyles.chatWindow,
+                        backgroundImage: isDarkMode 
+                            ? 'radial-gradient(circle at 50% 50%, #2c3e50 0%, transparent 100%)'
+                            : 'radial-gradient(circle at 50% 50%, #f5f5f5 0%, transparent 100%)',
                     }}>
                         {messages.map((message, index) => (
                             <MessageContainer key={index} sx={{
@@ -346,56 +410,34 @@ const Chat = () => {
                                         width: 32, 
                                         height: 32, 
                                         mr: 1,
-                                        bgcolor: 'primary.main',
+                                        bgcolor: isDarkMode ? '#0d47a1' : 'primary.main',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                     }}>
                                         <BotIcon fontSize="small" />
                                     </Avatar>
                                 )}
                                 <Box>
-                                    <MessageBubble type={message.type} elevation={0}>
-                                        <Typography>{message.text}</Typography>
+                                    <MessageBubble 
+                                        type={message.type} 
+                                        elevation={0}
+                                        sx={{
+                                            ...(message.type === 'user' 
+                                                ? darkModeStyles.messageBubble.user 
+                                                : darkModeStyles.messageBubble.bot)
+                                        }}
+                                    >
+                                        <Typography sx={{ color: 'inherit' }}>{message.text}</Typography>
                                     </MessageBubble>
-                                    <TimeStamp>
+                                    <TimeStamp sx={{ color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
                                         {formatTimestamp(message.timestamp)}
                                     </TimeStamp>
-                                    {message.type === 'bot' && (
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: 1,
-                                            mt: 1,
-                                            opacity: 0.7,
-                                            transition: 'opacity 0.2s',
-                                            '&:hover': { opacity: 1 }
-                                        }}>
-                                            <Tooltip title="Helpful" arrow>
-                                                <IconButton 
-                                                    size="small"
-                                                    onClick={() => handleRating(index, 'helpful')}
-                                                    color={messageRatings[index] === 'helpful' ? 'primary' : 'default'}
-                                                >
-                                                    <ThumbUpIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Not helpful" arrow>
-                                                <IconButton 
-                                                    size="small"
-                                                    onClick={() => handleRating(index, 'not_helpful')}
-                                                    color={messageRatings[index] === 'not_helpful' ? 'error' : 'default'}
-                                                >
-                                                    <ThumbDownIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    )}
                                 </Box>
                                 {message.type === 'user' && (
                                     <Avatar sx={{ 
                                         width: 32, 
                                         height: 32, 
                                         ml: 1,
-                                        bgcolor: 'secondary.main',
+                                        bgcolor: isDarkMode ? '#00838f' : '#00acc1', 
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                     }}>
                                         U
@@ -405,7 +447,7 @@ const Chat = () => {
                         ))}
                         {isLoading && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                                <CircularProgress size={24} />
+                                <CircularProgress size={24} sx={{ color: isDarkMode ? '#fff' : 'primary.main' }} />
                             </Box>
                         )}
                         <div ref={messagesEndRef} />
@@ -413,8 +455,8 @@ const Chat = () => {
 
                     <Box sx={{
                         p: 2,
-                        borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-                        background: 'linear-gradient(to right, #F8F9FB, #F0F2F5)',
+                        borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'}`,
+                        ...darkModeStyles.inputArea,
                     }}>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                             <StyledTextField
@@ -427,12 +469,29 @@ const Chat = () => {
                                 size="small"
                                 multiline
                                 maxRows={4}
-                                sx={{ flex: 1 }}
+                                sx={{ 
+                                    flex: 1,
+                                    '& .MuiOutlinedInput-root': {
+                                        ...darkModeStyles.textField,
+                                        '& fieldset': {
+                                            borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+                                        },
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: isDarkMode ? '#fff' : 'inherit',
+                                    },
+                                }}
                             />
                             <SendButton
                                 onClick={handleSend}
                                 disabled={!input.trim() || isLoading}
                                 size="large"
+                                sx={{
+                                    bgcolor: isDarkMode ? '#0d47a1' : 'primary.main',
+                                    '&:hover': {
+                                        bgcolor: isDarkMode ? '#1565c0' : 'primary.dark',
+                                    },
+                                }}
                             >
                                 <SendIcon />
                             </SendButton>
