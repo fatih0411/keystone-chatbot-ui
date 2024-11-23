@@ -219,6 +219,16 @@ const Chat = () => {
         };
     }, [isMobile, isOpen]);
 
+    useEffect(() => {
+        // Send height updates to parent window if in iframe
+        if (window.self !== window.top) {
+            window.parent.postMessage({
+                type: 'resize',
+                height: document.body.scrollHeight
+            }, '*');
+        }
+    }, [messages]);
+
     const handleSend = async () => {
         if (!input.trim()) return;
 
@@ -312,7 +322,20 @@ const Chat = () => {
             )}
 
             {isOpen && (
-                <ChatWindow isMobile={isMobile}>
+                <Box sx={{
+                    position: 'fixed',
+                    bottom: window.self === window.top ? 20 : 0,
+                    right: window.self === window.top ? 20 : 0,
+                    width: '100%',
+                    maxWidth: window.self === window.top ? 400 : '100%',
+                    height: window.self === window.top ? 600 : '100%',
+                    bgcolor: 'background.paper',
+                    borderRadius: window.self === window.top ? 2 : 0,
+                    boxShadow: window.self === window.top ? 3 : 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                }}>
                     <Box sx={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -541,7 +564,7 @@ const Chat = () => {
                             </SendButton>
                         </Box>
                     </Box>
-                </ChatWindow>
+                </Box>
             )}
         </>
     );
